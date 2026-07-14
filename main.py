@@ -18,7 +18,7 @@ from aiogram.types import (
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-OWNER_ID =  8672397104
+OWNER_IDS =  8672397104
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -147,7 +147,7 @@ grupo_selecionado = {}
 # =========================
 
 def is_owner(message: Message) -> bool:
-    return bool(message.from_user and message.from_user.id == OWNER_ID)
+    return bool(message.from_user and message.from_user.id == OWNER_IDS)
 
 def get_selected_group(user_id: int):
     return grupo_selecionado.get(user_id)
@@ -436,9 +436,9 @@ def render_welcome_text(template: str, user, chat_id: int, group_name: str = "")
     text = text.replace("{RULES}", rules_text)
     return text
 
-def fake_user_for_preview(owner_id: int):
+def fake_user_for_preview(owner_ids: int):
     class FakeUser:
-        id = owner_id
+        id = owner_ids
         first_name = "Jessyca"
         last_name = ""
         username = "jessyca"
@@ -541,7 +541,7 @@ async def can_use_command(chat_id: int, user_id: int, command_name: str, message
     data = get_permissions_data(chat_id)
     value = data.get(command_name, "admins")
 
-    if user_id == OWNER_ID:
+    if user_id == OWNER_IDS:
         return True
 
     if value == "none":
@@ -1173,7 +1173,7 @@ async def bot_added(event):
 
 @dp.callback_query(F.data.startswith("select_group:"))
 async def select_group(callback: CallbackQuery):
-    if not callback.from_user or callback.from_user.id != OWNER_ID:
+    if not callback.from_user or callback.from_user.id != OWNER_IDS:
         await safe_answer(callback, "Sem permissão.", show_alert=True)
         return
 
@@ -1194,7 +1194,7 @@ async def select_group(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "settings")
 async def cb_settings(callback: CallbackQuery):
-    if not callback.from_user or callback.from_user.id != OWNER_ID:
+    if not callback.from_user or callback.from_user.id != OWNER_IDS:
         await safe_answer(callback, "Sem permissão.", show_alert=True)
         return
 
@@ -2015,7 +2015,7 @@ async def cb_welcome_view_text(callback: CallbackQuery):
 
     texto = render_welcome_text(
         data["text"] or "Sem texto definido.",
-        fake_user_for_preview(OWNER_ID),
+        fake_user_for_preview(OWNER_IDS),
         chat_id,
         grupos.get(chat_id, "")
     )
@@ -2039,7 +2039,7 @@ async def cb_welcome_view_media(callback: CallbackQuery):
 
     caption = render_welcome_text(
         data["media_caption"] or data["text"] or "🖼️ Mídia atual da mensagem de boas-vindas",
-        fake_user_for_preview(OWNER_ID),
+        fake_user_for_preview(OWNER_IDS),
         chat_id,
         grupos.get(chat_id, "")
     )
@@ -2063,7 +2063,7 @@ async def cb_welcome_view_full(callback: CallbackQuery):
 
     texto = render_welcome_text(
         data["text"] or "Sem texto definido.",
-        fake_user_for_preview(OWNER_ID),
+        fake_user_for_preview(OWNER_IDS),
         chat_id,
         grupos.get(chat_id, "")
     )
@@ -2077,7 +2077,7 @@ async def cb_welcome_view_full(callback: CallbackQuery):
     if data["media_file_id"]:
         caption = render_welcome_text(
             data["media_caption"] or data["text"] or texto,
-            fake_user_for_preview(OWNER_ID),
+            fake_user_for_preview(OWNER_IDS),
             chat_id,
             grupos.get(chat_id, "")
         )
@@ -2142,7 +2142,7 @@ async def cb_welcome_cancel(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "finish_settings")
 async def cb_finish_settings(callback: CallbackQuery):
-    if not callback.from_user or callback.from_user.id != OWNER_ID:
+    if not callback.from_user or callback.from_user.id != OWNER_IDS:
         await safe_answer(callback, "Sem permissão.", show_alert=True)
         return
 
