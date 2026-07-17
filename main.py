@@ -640,6 +640,48 @@ def build_permissions_keyboard(chat_id: int):
         ]
     )
 
+def ensure_night_config(chat_id: int):
+    cur.execute(
+        "SELECT chat_id FROM night_config WHERE chat_id=?",
+        (chat_id,)
+    )
+
+    if cur.fetchone() is None:
+        cur.execute("""
+            INSERT INTO night_config(
+                chat_id,
+                enabled,
+                action,
+                start_hour,
+                end_hour,
+                warning_enabled,
+                timezone_name,
+                timezone_offset,
+                text_start,
+                text_end,
+                media_start_type,
+                media_start_file_id,
+                media_end_type,
+                media_end_file_id,
+                banner_message_id
+            )
+            VALUES(
+                ?,0,'disabled',
+                22,7,0,
+                'America/Fortaleza',
+                -3,
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                0
+            )
+        """, (chat_id,))
+
+        db.commit()
+
 # =========================
 # MENUS INLINE
 # =========================
@@ -1427,20 +1469,6 @@ async def cb_night_disable(callback: CallbackQuery):
     await safe_answer(callback, "Modo noturno desativado.")
 
 
-@dp.callback_query(F.data == "night_text_start")
-async def cb_night_text_start(callback: CallbackQuery):
-    chat_id = get_selected_group(callback.from_user.id)
-    night_waiting_text_start.add(chat_id)
-
-    await safe_edit(
-        callback.message,
-        "✍️ Envie agora o texto de início do modo noturno:",
-        reply_markup=InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="⬅️ Voltar", callback_data="cfg_night")]]
-        )
-    )
-    await safe_answer(callback)
-
 
 @dp.callback_query(F.data == "night_text_end")
 async def cb_night_text_end(callback: CallbackQuery):
@@ -1450,21 +1478,6 @@ async def cb_night_text_end(callback: CallbackQuery):
     await safe_edit(
         callback.message,
         "✍️ Envie agora o texto de fim do modo noturno:",
-        reply_markup=InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="⬅️ Voltar", callback_data="cfg_night")]]
-        )
-    )
-    await safe_answer(callback)
-
-
-@dp.callback_query(F.data == "night_media_start")
-async def cb_night_media_start(callback: CallbackQuery):
-    chat_id = get_selected_group(callback.from_user.id)
-    night_waiting_media_start.add(chat_id)
-
-    await safe_edit(
-        callback.message,
-        "🖼️ Envie agora a mídia de início do modo noturno:",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[[InlineKeyboardButton(text="⬅️ Voltar", callback_data="cfg_night")]]
         )
@@ -1544,21 +1557,6 @@ async def cb_night_text_start(callback: CallbackQuery):
     await safe_answer(callback)
 
 
-@dp.callback_query(F.data == "night_text_end")
-async def cb_night_text_end(callback: CallbackQuery):
-    chat_id = get_selected_group(callback.from_user.id)
-    night_waiting_text_end.add(chat_id)
-
-    await safe_edit(
-        callback.message,
-        "✍️ Envie agora o texto de fim do modo noturno:",
-        reply_markup=InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="⬅️ Voltar", callback_data="cfg_night")]]
-        )
-    )
-    await safe_answer(callback)
-
-
 @dp.callback_query(F.data == "night_media_start")
 async def cb_night_media_start(callback: CallbackQuery):
     chat_id = get_selected_group(callback.from_user.id)
@@ -1572,53 +1570,6 @@ async def cb_night_media_start(callback: CallbackQuery):
         )
     )
     await safe_answer(callback)
-
-
-@dp.callback_query(F.data == "night_media_end")
-async def cb_night_media_end(callback: CallbackQuery):
-    chat_id = get_selected_group(callback.from_user.id)
-    night_waiting_media_end.add(chat_id)
-
-    await safe_edit(
-        callback.message,
-        "🖼️ Envie agora a mídia de fim do modo noturno:",
-        reply_markup=InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="⬅️ Voltar", callback_data="cfg_night")]]
-        )
-    )
-    await safe_answer(callback)
-
-
-@dp.callback_query(F.data == "night_text_start")
-async def cb_night_text_start(callback: CallbackQuery):
-        chat_id = get_selected_group(callback.from_user.id)
-        night_waiting_text_start.add(chat_id)
-        await safe_edit(callback.message, "✍️ Envie agora o texto de início do modo noturno:")
-        await safe_answer(callback)
-
-
-@dp.callback_query(F.data == "night_text_end")
-async def cb_night_text_end(callback: CallbackQuery):
-        chat_id = get_selected_group(callback.from_user.id)
-        night_waiting_text_end.add(chat_id)
-        await safe_edit(callback.message, "✍️ Envie agora o texto de fim do modo noturno:")
-        await safe_answer(callback)
-
-
-@dp.callback_query(F.data == "night_media_start")
-async def cb_night_media_start(callback: CallbackQuery):
-        chat_id = get_selected_group(callback.from_user.id)
-        night_waiting_media_start.add(chat_id)
-        await safe_edit(callback.message, "🖼️ Envie agora a mídia de início do modo noturno:")
-        await safe_answer(callback)
-
-
-@dp.callback_query(F.data == "night_media_end")
-async def cb_night_media_end(callback: CallbackQuery):
-        chat_id = get_selected_group(callback.from_user.id)
-        night_waiting_media_end.add(chat_id)
-        await safe_edit(callback.message, "🖼️ Envie agora a mídia de fim do modo noturno:")
-        await safe_answer(callback)
 
 
 # =========================
