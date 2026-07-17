@@ -119,6 +119,9 @@ add_column_if_missing("night_config", "media_start_file_id", "TEXT DEFAULT ''")
 add_column_if_missing("night_config", "media_end_type", "TEXT DEFAULT ''")
 add_column_if_missing("night_config", "media_end_file_id", "TEXT DEFAULT ''")
 
+# NOVO
+add_column_if_missing("night_config", "banner_message_id", "INTEGER DEFAULT 0")
+
 
 # =========================
 # ESTADOS
@@ -1406,11 +1409,18 @@ def get_night_data(chat_id: int):
     ensure_night_config(chat_id)
 
     cur.execute("""
-        SELECT enabled, start_hour, end_hour, timezone_name, timezone_offset,
-               text_start, text_end, media_start_type, media_start_file_id,
-               media_end_type, media_end_file_id
-        FROM night_config
-        WHERE chat_id=?
+        SELECT enabled,
+               start_hour,
+               end_hour,
+               timezone_name,
+               timezone_offset,
+               text_start,
+               text_end,
+               media_start_type,
+               media_start_file_id,
+               media_end_type,
+               media_end_file_id,
+               banner_message_id
     """, (chat_id,))
     row = cur.fetchone()
 
@@ -1426,6 +1436,7 @@ def get_night_data(chat_id: int):
         "media_start_file_id": row[8] or "",
         "media_end_type": row[9] or "",
         "media_end_file_id": row[10] or "",
+        "banner_message_id": row[11] or 0,
     }
 
 
