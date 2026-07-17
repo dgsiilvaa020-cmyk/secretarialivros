@@ -641,142 +641,6 @@ def build_permissions_keyboard(chat_id: int):
     )
 
 # =========================
-# FUNÇÕES DO MODO NOTURNO
-# =========================
-
-def ensure_night_config(chat_id: int):
-    cur.execute("SELECT chat_id FROM night_config WHERE chat_id=?", (chat_id,))
-    row = cur.fetchone()
-    if not row:
-        cur.execute("""
-            INSERT INTO night_config (
-                chat_id, enabled, action, start_hour, end_hour,
-                warning_enabled, timezone_name, timezone_offset
-            ) VALUES (?, 0, 'disabled', 22, 7, 0, 'America/Fortaleza', -3)
-        """, (chat_id,))
-        db.commit()
-
-def get_night_data(chat_id: int):
-    ensure_night_config(chat_id)
-
-    cur.execute("""
-        SELECT enabled, 
-               start_hour,
-               end_hour,
-               timezone_name,
-               timezone_offset,
-               text_start,
-               text_end,
-               media_start_type,
-               media_start_file_id,
-               media_end_type,
-               media_end_file_id,
-               banner_message_id
-    """, (chat_id,))
-    row = cur.fetchone()
-
-    return {
-        "enabled": row[0],
-        "action": row[1] or "disabled",
-        "start_hour": row[2],
-        "end_hour": row[3],
-        "warning_enabled": row[4],
-        "timezone_name": row[5] or "America/Fortaleza",
-        "timezone_offset": row[6] if row[6] is not None else -3,
-    }
-
-def set_night_action(chat_id: int, action: str):
-    ensure_night_config(chat_id)
-
-    if action == "disabled":
-        cur.execute(
-            "UPDATE night_config SET enabled=0, action='disabled' WHERE chat_id=?",
-            (chat_id,)
-        )
-    else:
-        cur.execute(
-            "UPDATE night_config SET enabled=1, action=? WHERE chat_id=?",
-            (action, chat_id)
-        )
-
-    db.commit()
-
-def set_night_hours(chat_id: int, start_hour: int, end_hour: int):
-    ensure_night_config(chat_id)
-    cur.execute(
-        "UPDATE night_config SET start_hour=?, end_hour=? WHERE chat_id=?",
-        (start_hour, end_hour, chat_id)
-    )
-    db.commit()
-
-def set_night_warning(chat_id: int):
-    data = get_night_data(chat_id)
-    novo = 0 if data["warning_enabled"] else 1
-
-    cur.execute(
-        "UPDATE night_config SET warning_enabled=? WHERE chat_id=?",
-        (novo, chat_id)
-    )
-    db.commit()
-
-def set_night_timezone(chat_id: int, timezone_name: str, timezone_offset: int):
-    ensure_night_config(chat_id)
-    cur.execute(
-        "UPDATE night_config SET timezone_name=?, timezone_offset=? WHERE chat_id=?",
-        (timezone_name, timezone_offset, chat_id)
-    )
-    db.commit()
-
-def get_current_time_by_offset(offset: int):
-    return datetime.utcnow() + timedelta(hours=offset)
-
-def night_action_label(action: str):
-    if action == "media":
-        return "🗑️ Deletar mídias"
-    if action == "silence":
-        return "🌕 Silêncio Global"
-    return "❌ Desativado"
-
-def night_current_time_text(chat_id: int):
-    data = get_night_data(chat_id)
-    now = get_current_time_by_offset(data["timezone_offset"])
-    return now.strftime("%d de abr. de %Y,\n%H:%M")
-
-def night_status_text(chat_id: int):
-    data = get_night_data(chat_id)
-    atual = get_current_time_by_offset(data["timezone_offset"])
-
-    situacao = night_action_label(data["action"])
-    ativo = f"Ativo das {data['start_hour']}h às {data['end_hour']}h" if data["enabled"] else "Desativado"
-    aviso = "✓" if data["warning_enabled"] else "×"
-
-    return (
-        "🌙 Modo Noturno\n"
-        "Selecione as limitações que você\n"
-        "pretende impor durante a noite.\n\n"
-        f"Situação: {situacao}\n"
-        f"└ {ativo}\n"
-        f"└ Mensagens de aviso: {aviso}\n\n"
-        f"Hora atual: {atual.strftime('%d de abr. de %Y,')}\n"
-        f"{atual.strftime('%H:%M')}"
-    )
-
-def night_timezone_text(chat_id: int):
-    data = get_night_data(chat_id)
-    now = get_current_time_by_offset(data["timezone_offset"])
-
-    return (
-        "🌎 Fuso horário\n"
-        "Neste menu, você pode definir o\n"
-        "fuso horário do grupo.\n\n"
-        "O bot precisa dessa informação\n"
-        "para enviar corretamente as\n"
-        "mensagens com datas.\n\n"
-        f"Atual: {data['timezone_name']} "
-        f"({now.strftime('%d de abr. de %Y, %H:%M')})"
-    )
-
-# =========================
 # MENUS INLINE
 # =========================
 
@@ -1431,6 +1295,8 @@ def get_night_data(chat_id: int):
                media_end_type,
                media_end_file_id,
                banner_message_id
+        FROM night_config
+        WHERE chat_id=?
     """, (chat_id,))
     row = cur.fetchone()
 
