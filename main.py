@@ -2450,10 +2450,47 @@ async def send_night_message(chat_id: int, tipo: str):
     data = get_night_data(chat_id)
 
     if tipo == "start":
+
+        # FECHA O GRUPO
+        await bot.set_chat_permissions(
+            chat_id,
+            ChatPermissions(
+                can_send_messages=False,
+                can_send_audios=False,
+                can_send_documents=False,
+                can_send_photos=False,
+                can_send_videos=False,
+                can_send_video_notes=False,
+                can_send_voice_notes=False,
+                can_send_polls=False,
+                can_send_other_messages=False,
+                can_add_web_page_previews=False
+            )
+        )
+
         text = data.get("text_start") or ""
         media_type = data.get("media_start_type") or ""
         file_id = data.get("media_start_file_id") or ""
+
     else:
+
+        # REABRE O GRUPO
+        await bot.set_chat_permissions(
+            chat_id,
+            ChatPermissions(
+                can_send_messages=True,
+                can_send_audios=True,
+                can_send_documents=True,
+                can_send_photos=True,
+                can_send_videos=True,
+                can_send_video_notes=True,
+                can_send_voice_notes=True,
+                can_send_polls=True,
+                can_send_other_messages=True,
+                can_add_web_page_previews=True
+            )
+        )
+
         text = data.get("text_end") or ""
         media_type = data.get("media_end_type") or ""
         file_id = data.get("media_end_file_id") or ""
