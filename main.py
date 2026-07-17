@@ -123,6 +123,8 @@ add_column_if_missing("night_config", "media_end_file_id", "TEXT DEFAULT ''")
 add_column_if_missing("night_config", "banner_message_id", "INTEGER DEFAULT 0")
 
 
+
+
 # =========================
 # ESTADOS
 # =========================
@@ -658,10 +660,18 @@ def get_night_data(chat_id: int):
     ensure_night_config(chat_id)
 
     cur.execute("""
-        SELECT enabled, action, start_hour, end_hour,
-               warning_enabled, timezone_name, timezone_offset
-        FROM night_config
-        WHERE chat_id=?
+        SELECT enabled, 
+               start_hour,
+               end_hour,
+               timezone_name,
+               timezone_offset,
+               text_start,
+               text_end,
+               media_start_type,
+               media_start_file_id,
+               media_end_type,
+               media_end_file_id,
+               banner_message_id
     """, (chat_id,))
     row = cur.fetchone()
 
@@ -2508,14 +2518,32 @@ async def send_night_message(chat_id: int, tipo: str):
 
     try:
         if file_id:
+
             if media_type == "photo":
-                await bot.send_photo(chat_id, file_id, caption=text)
+                msg = await bot.send_photo(chat_id, file_id, caption=text)
+
             elif media_type == "video":
-                await bot.send_video(chat_id, file_id, caption=text)
+                msg = await bot.send_video(chat_id, file_id, caption=text)
+
             elif media_type == "document":
-                await bot.send_document(chat_id, file_id, caption=text)
+                msg = await bot.send_document(chat_id, file_id, caption=text)
+
+            else:
+                msg = None
+
         elif text:
-            await bot.send_message(chat_id, text)
+            msg = await bot.send_message(chat_id, text)
+
+        else:
+            msg = None
+
+        if msg:
+            cur.execute(
+                "UPDATE night_config SET banner_message_id=? WHERE chat_id=?",
+                (msg.message_id, chat_id)
+            )
+            db.commit()
+
     except Exception as e:
         print("ERRO AO ENVIAR MODO NOTURNO:", repr(e))
 
