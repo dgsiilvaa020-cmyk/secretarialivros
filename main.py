@@ -123,6 +123,25 @@ add_column_if_missing("night_config", "media_end_file_id", "TEXT DEFAULT ''")
 add_column_if_missing("night_config", "banner_message_id", "INTEGER DEFAULT 0")
 
 
+def ensure_night_config(chat_id):
+    cur.execute("SELECT chat_id FROM night_config WHERE chat_id=?", (chat_id,))
+    row = cur.fetchone()
+
+    if row is None:
+        cur.execute("""
+            INSERT INTO night_config (
+                chat_id,
+                enabled,
+                start_hour,
+                end_hour,
+                timezone_name,
+                timezone_offset
+            )
+            VALUES (?, 0, 22, 8, 'America/Fortaleza', -3)
+        """, (chat_id,))
+        db.commit()
+
+
 
 
 # =========================
