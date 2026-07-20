@@ -463,13 +463,14 @@ def render_welcome_text(template: str, user, chat_id: int, group_name: str = "")
     text = text.replace("{RULES}", rules_text)
     return text
 
-def fake_user_for_preview(next(iter(OWNER_IDS)))
+def fake_user_for_preview():
     class FakeUser:
-        id = owner_ids
+        id = next(iter(OWNER_IDS))
         first_name = "Jessyca"
         last_name = ""
         username = "jessyca"
         language_code = "pt-br"
+
     return FakeUser()
 
 # =========================
