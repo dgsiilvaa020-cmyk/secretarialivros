@@ -171,7 +171,10 @@ grupo_selecionado = {}
 # =========================
 
 def is_owner(message: Message) -> bool:
-    return bool(message.from_user and message.from_user.id == OWNER_IDS)
+    return bool(
+        message.from_user and
+        message.from_user.id in OWNER_IDS
+    )
 
 def get_selected_group(user_id: int):
     return grupo_selecionado.get(user_id)
@@ -460,7 +463,7 @@ def render_welcome_text(template: str, user, chat_id: int, group_name: str = "")
     text = text.replace("{RULES}", rules_text)
     return text
 
-def fake_user_for_preview(owner_ids: int):
+def fake_user_for_preview(next(iter(OWNER_IDS)))
     class FakeUser:
         id = owner_ids
         first_name = "Jessyca"
@@ -565,7 +568,7 @@ async def can_use_command(chat_id: int, user_id: int, command_name: str, message
     data = get_permissions_data(chat_id)
     value = data.get(command_name, "admins")
 
-    if user_id == OWNER_IDS:
+    if user_id in OWNER_IDS:
         return True
 
     if value == "none":
@@ -1111,7 +1114,7 @@ async def bot_added(event):
 
 @dp.callback_query(F.data.startswith("select_group:"))
 async def select_group(callback: CallbackQuery):
-    if not callback.from_user or callback.from_user.id != OWNER_IDS:
+    if not callback.from_user or callback.from_user.id not in OWNER_IDS:
         await safe_answer(callback, "Sem permissão.", show_alert=True)
         return
 
@@ -1132,7 +1135,7 @@ async def select_group(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "settings")
 async def cb_settings(callback: CallbackQuery):
-    if not callback.from_user or callback.from_user.id != OWNER_IDS:
+    if not callback.from_user or callback.from_user.id not in OWNER_IDS:
         await safe_answer(callback, "Sem permissão.", show_alert=True)
         return
 
@@ -1999,7 +2002,7 @@ async def cb_welcome_cancel(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "finish_settings")
 async def cb_finish_settings(callback: CallbackQuery):
-    if not callback.from_user or callback.from_user.id != OWNER_IDS:
+    if not callback.from_user or callback.from_user.id not in OWNER_IDS:
         await safe_answer(callback, "Sem permissão.", show_alert=True)
         return
 
