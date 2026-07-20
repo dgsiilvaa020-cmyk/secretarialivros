@@ -18,7 +18,7 @@ from aiogram.types import (
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-OWNER_IDS =  8672397104, 8450100073
+OWNER_IDS =  {8672397104, 8450100073}
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
